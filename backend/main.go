@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -8,11 +10,23 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", HelloHandler)
-	http.ListenAndServe(":4000", r)
+	r.HandleFunc("/todos", RetrieveTodosHandler)
+	err := http.ListenAndServe(":4000", r)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
-func HelloHandler(w http.ResponseWriter, r *http.Request) {
+func RetrieveTodosHandler(w http.ResponseWriter, r *http.Request) {
+	todos := []ToDo{}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hello World"))
+
+	err := json.NewEncoder(w).Encode(todos)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }
