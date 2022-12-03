@@ -1,12 +1,33 @@
 package main
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var repo Repo
+
+func TestInitializeRepo(t *testing.T) {
+	repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
+
+	_, err := repo.DB.Collection("testing-initialize").InsertOne(context.TODO(), bson.D{{"test", "works"}})
+
+	assertResponse("unexpected error when inserting data", err, nil, t)
+
+	var result bson.D
+	err = repo.DB.Collection("testing-initialize").FindOne(context.TODO(), bson.D{{"test", "works"}}).Decode(&result)
+
+	if err == mongo.ErrNoDocuments {
+		t.Errorf("No result")
+	}
+}
 
 func TestListTodosEmpty(t *testing.T) {
 	rr, err := recorderHandler("GET", "/todos", nil, RetrieveTodosHandler)
