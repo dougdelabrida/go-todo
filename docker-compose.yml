@@ -1,0 +1,40 @@
+version: '3'
+services:
+
+  todo-mongo-dev:
+    container_name: 'todo-database'
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+
+  todo-backend:
+    container_name: 'todo-server'
+    build: ./backend
+    environment:
+      - APP_DB_USERNAME=admin
+      - APP_DB_PASSWORD=123456
+
+    ports:
+      - 4000:4000 
+    links:
+      - todo-mongo-dev
+
+  todo-frontend:
+    container_name: 'todo-client'
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - ./frontend:/frontend
+      - /frontend/node_modules
+      - /frontend/.next
+    ports:
+      - 3000:3000 
+    links:
+      - todo-backend
+
+volumes:
+  todo-data:
