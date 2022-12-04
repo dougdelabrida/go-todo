@@ -31,7 +31,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/todos", a.RetrieveTodosHandler).Methods("GET")
 	a.Router.HandleFunc("/todos", a.CreateTodoHandler).Methods("POST")
 	a.Router.HandleFunc("/todos/{id}", a.UpdateTodoHandler).Methods("PUT")
-	a.Router.HandleFunc("/todos/{id}", a.UpdateTodoHandler).Methods("DELETE")
+	a.Router.HandleFunc("/todos/{id}", a.DeleteTodoHandler).Methods("DELETE")
 }
 
 func (a *App) RetrieveTodosHandler(w http.ResponseWriter, r *http.Request) {
@@ -150,11 +150,12 @@ func (a *App) DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.Repo.DeleteToDo(id)
-
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	if err := a.Repo.DeleteToDo(id); err != nil {
+		http.Error(w, "Failed to delete task", http.StatusBadRequest)
+		return
 	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func sendInternalServerError(w http.ResponseWriter, err error) {
