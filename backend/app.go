@@ -23,29 +23,67 @@ func (a *App) Initialize(ctx context.Context, repo *Repo) {
 }
 
 func (a *App) Run(addr string) {
-	err := http.ListenAndServe(addr, a.Router)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	log.Fatal(http.ListenAndServe(addr, a.Router))
 }
 
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/todos", a.RetrieveTodosHandler).Methods("GET")
+	a.Router.HandleFunc("/todos", a.CreateTodoHandler).Methods("POST")
 }
 
 func (a *App) RetrieveTodosHandler(w http.ResponseWriter, r *http.Request) {
-	todos := []ToDo{}
+	todos := make([]ToDo, 0)
 
-	a.Repo.GetToDoList()
+	if res := a.Repo.GetToDoList(); res != nil {
+		todos = res
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
 	err := json.NewEncoder(w).Encode(todos)
 
-	if err == nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+	if err != nil {
+		log.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func (a *App) CreateTodoHandler(w http.ResponseWriter, r *http.Request) {
+	var todo ToDo
+
+	decoder := json.NewDecoder(r.Body)
+
+	err := decoder.Decode(&todo)
+
+	if err != nil {
+		log.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	defer r.Body.Close()
+
+	createdTodo, err := a.Repo.CreateToDo(todo)
+
+	if err != nil {
+		log.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	jsonData, err := json.Marshal(createdTodo)
+
+	if err != nil {
+		log.Fatal(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	_, err = w.Write(jsonData)
 
 	if err != nil {
 		log.Fatal(err)
