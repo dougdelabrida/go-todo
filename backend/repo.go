@@ -80,3 +80,17 @@ func (r *Repo) UpdateToDo(todo ToDo) (ToDo, error) {
 
 	return todo, err
 }
+
+func (r *Repo) DeleteToDo(id primitive.ObjectID) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	log.Println(id)
+	_, err := r.DB.Collection(collectionName).DeleteOne(ctx, bson.D{primitive.E{Key: "_id", Value: id}})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return err
+}

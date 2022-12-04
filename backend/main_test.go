@@ -135,6 +135,38 @@ func TestUpdateTodo(t *testing.T) {
 	destroyDatabase(repo.DB, t)
 }
 
+func TestDeleteTodo(t *testing.T) {
+	// Create Todo
+	requestBody := []byte(`{"text":"ToDo to delete","status":1,"priority":1}`)
+
+	_, _ = recorderHandler("POST", "/todos", bytes.NewBuffer(requestBody), app.CreateTodoHandler)
+
+	// Check if it was created
+
+	rr, _ := recorderHandler("GET", "/todos", nil, app.RetrieveTodosHandler)
+
+	createdTodo := getTodo(rr.Body.Bytes(), 0)
+	assertResponse("text should be the same: ", createdTodo.Text, "ToDo to delete", t)
+
+	// Update Todo
+
+	req, _ := http.NewRequest("DELETE", "/todos/{id}", nil)
+	req = mux.SetURLVars(req, map[string]string{"id": createdTodo.ID.Hex()})
+
+	rr = httptest.NewRecorder()
+	handler := http.HandlerFunc(app.DeleteTodoHandler)
+	handler.ServeHTTP(rr, req)
+
+	// Check if it was updated
+
+	rr, _ = recorderHandler("GET", "/todos", nil, app.RetrieveTodosHandler)
+
+	firstTodo := getTodo(rr.Body.Bytes(), 0)
+	assertResponse("text should should be: ", firstTodo, (*ToDo)(nil), t)
+
+	destroyDatabase(repo.DB, t)
+}
+
 func destroyDatabase(db *mongo.Database, t *testing.T) {
 	err := db.Drop(context.TODO())
 
@@ -165,8 +197,13 @@ func recorderHandler(method string, url string, body io.Reader, handlerFunc http
 	return rr, err
 }
 
-func getTodo(bytes []byte, pos int64) ToDo {
+func getTodo(bytes []byte, pos int64) *ToDo {
 	var todos []ToDo
 	_ = json.Unmarshal(bytes, &todos)
-	return todos[pos]
+
+	if len(todos) == 0 {
+		return nil
+	}
+
+	return &todos[pos]
 }

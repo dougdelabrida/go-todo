@@ -31,6 +31,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/todos", a.RetrieveTodosHandler).Methods("GET")
 	a.Router.HandleFunc("/todos", a.CreateTodoHandler).Methods("POST")
 	a.Router.HandleFunc("/todos/{id}", a.UpdateTodoHandler).Methods("PUT")
+	a.Router.HandleFunc("/todos/{id}", a.UpdateTodoHandler).Methods("DELETE")
 }
 
 func (a *App) RetrieveTodosHandler(w http.ResponseWriter, r *http.Request) {
@@ -94,9 +95,6 @@ func (a *App) UpdateTodoHandler(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
-	log.Println(vars)
-	log.Println(r.URL.Path)
-
 	id, err := primitive.ObjectIDFromHex(vars["id"])
 
 	if err != nil {
@@ -139,6 +137,23 @@ func (a *App) UpdateTodoHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (a *App) DeleteTodoHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	id, err := primitive.ObjectIDFromHex(vars["id"])
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = a.Repo.DeleteToDo(id)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 	}
 }
 
