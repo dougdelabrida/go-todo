@@ -4,6 +4,8 @@ import (
 	"context"
 	"os"
 	"time"
+
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func main() {
@@ -11,7 +13,18 @@ func main() {
 	defer cancel()
 
 	repo := new(Repo)
-	repo.Initialize(os.Getenv("MONGODB_URI"), "todo-app", ctx)
+
+	client, err := repo.Initialize(os.Getenv("MONGODB_URI"), "todo-app", ctx)
+
+	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		panic(err)
+	}
+
+	defer func() {
+		if err = client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
 
 	app := App{}
 	app.Initialize(ctx, repo)
