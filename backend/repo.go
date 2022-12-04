@@ -67,3 +67,16 @@ func (r *Repo) CreateToDo(todo ToDo) (ToDo, error) {
 		Priority: todo.Priority,
 	}, err
 }
+
+func (r *Repo) UpdateToDo(todo ToDo) (ToDo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	_, err := r.DB.Collection(collectionName).UpdateOne(ctx, bson.D{primitive.E{Key: "_id", Value: todo.ID}}, bson.D{primitive.E{Key: "$set", Value: todo}})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return todo, err
+}

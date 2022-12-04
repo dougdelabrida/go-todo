@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -19,7 +20,7 @@ var repo Repo
 var app App
 
 func TestInitializeRepo(t *testing.T) {
-	repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
+	_, _ = repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
 
 	_, err := repo.DB.Collection("testing-initialize").InsertOne(context.TODO(), bson.D{{"test", "works"}})
 
@@ -53,7 +54,7 @@ func TestListTodosEmpty(t *testing.T) {
 }
 
 func TestCreateTodo(t *testing.T) {
-	repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
+	_, _ = repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
 	app.Initialize(context.TODO(), &repo)
 
 	var requestBody = []byte(`{"text":"First task","status":1,"priority":1}`)
@@ -73,7 +74,7 @@ func TestCreateTodo(t *testing.T) {
 }
 
 func TestListTodos(t *testing.T) {
-	repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
+	_, _ = repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
 	app.Initialize(context.TODO(), &repo)
 
 	var requestBody = []byte(`{"text":"First ToDo","status":1,"priority":1}`)
@@ -95,6 +96,41 @@ func TestListTodos(t *testing.T) {
 	if strings.TrimSpace(rr.Body.String()) == "[]" {
 		t.Fatal("empty list of ToDos")
 	}
+
+	destroyDatabase(repo.DB, t)
+}
+
+func TestUpdateTodo(t *testing.T) {
+	// Create Todo
+	requestBody := []byte(`{"text":"Not updated","status":1,"priority":1}`)
+
+	_, _ = recorderHandler("POST", "/todos", bytes.NewBuffer(requestBody), app.CreateTodoHandler)
+
+	// Check if it was created
+
+	rr, _ := recorderHandler("GET", "/todos", nil, app.RetrieveTodosHandler)
+
+	createdTodo := getTodo(rr.Body.Bytes(), 0)
+	assertResponse("text should be the same: ", createdTodo.Text, "Not updated", t)
+
+	// Update Todo
+
+	requestBody = []byte(`{"text":"Updated","status":1,"priority":1}`)
+
+	req, _ := http.NewRequest("PUT", "/todos/{id}", bytes.NewBuffer(requestBody))
+	req.Header.Set("Content-Type", "application/json")
+	req = mux.SetURLVars(req, map[string]string{"id": createdTodo.ID.Hex()})
+
+	rr = httptest.NewRecorder()
+	handler := http.HandlerFunc(app.UpdateTodoHandler)
+	handler.ServeHTTP(rr, req)
+
+	// Check if it was updated
+
+	rr, _ = recorderHandler("GET", "/todos", nil, app.RetrieveTodosHandler)
+
+	updatedTodo := getTodo(rr.Body.Bytes(), 0)
+	assertResponse("text should should be: ", updatedTodo.Text, "Updated", t)
 
 	destroyDatabase(repo.DB, t)
 }
@@ -127,4 +163,10 @@ func recorderHandler(method string, url string, body io.Reader, handlerFunc http
 	handler := http.HandlerFunc(handlerFunc)
 	handler.ServeHTTP(rr, req)
 	return rr, err
+}
+
+func getTodo(bytes []byte, pos int64) ToDo {
+	var todos []ToDo
+	_ = json.Unmarshal(bytes, &todos)
+	return todos[pos]
 }
