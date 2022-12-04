@@ -13,6 +13,7 @@ import (
 )
 
 var repo Repo
+var app App
 
 func TestInitializeRepo(t *testing.T) {
 	repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
@@ -27,10 +28,15 @@ func TestInitializeRepo(t *testing.T) {
 	if err == mongo.ErrNoDocuments {
 		t.Errorf("No result")
 	}
+
+	repo.DB.Drop(context.TODO())
 }
 
 func TestListTodosEmpty(t *testing.T) {
-	rr, err := recorderHandler("GET", "/todos", nil, RetrieveTodosHandler)
+	repo.Initialize("mongodb://localhost", "mongo-testing", context.TODO())
+	app.Initialize(context.TODO(), &repo)
+
+	rr, err := recorderHandler("GET", "/todos", nil, app.RetrieveTodosHandler)
 
 	if err != nil {
 		t.Fatal(err)
@@ -39,9 +45,7 @@ func TestListTodosEmpty(t *testing.T) {
 	expected := "[]"
 
 	assertResponse("unexpected status code", rr.Code, http.StatusOK, t)
-
 	assertResponse("unexpected Content-Type", rr.Header().Get("Content-Type"), "application/json", t)
-
 	assertResponse("handler returned unexpected body", strings.TrimSpace(rr.Body.String()), expected, t)
 }
 
