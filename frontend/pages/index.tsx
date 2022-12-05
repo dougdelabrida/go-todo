@@ -1,9 +1,9 @@
-import { Box, Text } from '@chakra-ui/react'
+import { Container, Text } from '@chakra-ui/react'
 
 export default function Home() {
   return (
-    <Box>
+    <Container>
       <Text>Chakra UI</Text>
-    </Box>
+    </Container>
   )
 }
