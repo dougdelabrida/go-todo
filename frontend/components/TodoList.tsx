@@ -13,7 +13,7 @@ export default function TodoList(props: TodoListProps) {
     <VStack>
       {props.data.map((todo) => (
         <HStack key={todo._id} width="full" justifyContent="space-between">
-          <Text>{todo.text}</Text>
+          <Text textDecoration={todo.status === Status.Complete ? 'line-through' : 'unset'}>{todo.text}</Text>
           <HStack>
             <Button
               onClick={() =>
