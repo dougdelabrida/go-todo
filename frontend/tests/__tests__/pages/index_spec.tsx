@@ -29,6 +29,13 @@ jest.mock('../../../data', () => ({
       }, 0)
     })
   }),
+  removeTodo: jest.fn().mockImplementation(() => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(null)
+      }, 0)
+    })
+  }),
 }))
 
 describe('Index page', () => {
@@ -79,7 +86,22 @@ describe('Index page', () => {
     fireEvent.click(tree.getAllByText('Done')[0])
 
     await waitFor(() => {
-      expect(tree.getAllByText('Undo')[0]).toBeTruthy()
+      expect(tree.queryByText('Done')).toBeFalsy()
+    })
+  })
+
+  it('should delete a todo when click on Remove', async () => {
+    const tree = renderWithChakra(<Home />)
+
+    await waitFor(() => {
+      expect(tree.getByText(dataMock[0].text))
+    })
+
+    fireEvent.click(tree.getAllByText('Remove')[0])
+
+    await waitFor(() => {
+      expect(tree.queryByText(dataMock[0].text)).toBeFalsy()
+      expect(tree.queryByText('Loading...')).toBeFalsy()
     })
   })
 })

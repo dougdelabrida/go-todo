@@ -23,3 +23,10 @@ export const updateTodo = async (todo: Todo) => {
   })
   return await response.json()
 }
+
+export const removeTodo = async (_id: string) => {
+  const response = await fetch(`${SERVER_URL}/todos/${_id}`, {
+    method: 'DELETE',
+  })
+  return response
+}
