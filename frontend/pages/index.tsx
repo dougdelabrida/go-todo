@@ -4,8 +4,8 @@ import { Container, Text } from '@chakra-ui/react'
 
 import AddTodo, { NewTodo } from '../components/AddTodo'
 import TodoList from '../components/TodoList'
-import { fetchTodos, createTodo } from '../data'
-import { Todo } from '../types'
+import { fetchTodos, createTodo, updateTodo } from '../data'
+import { Status, Todo } from '../types'
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true)
@@ -27,6 +27,18 @@ export default function Home() {
     setIsLoading(false)
   }
 
+  const onToggleStatus = async (todo: Todo, status: Status) => {
+    setIsLoading(true)
+    const updatedTodo = await updateTodo({ ...todo, status })
+    setTodos((todos) => {
+      const newTodos = [...todos]
+      const indexToUpdate = newTodos.findIndex((todo) => todo._id === updatedTodo._id)
+      newTodos[indexToUpdate] = updatedTodo
+      return newTodos
+    })
+    setIsLoading(false)
+  }
+
   useEffect(() => {
     fetchData()
   }, [])
@@ -34,7 +46,7 @@ export default function Home() {
   return (
     <Container>
       <AddTodo onAdd={handleAddTodo} />
-      <TodoList data={todos} />
+      <TodoList data={todos} onToggle={onToggleStatus} />
       {isLoading && <Text>Loading...</Text>}
     </Container>
   )

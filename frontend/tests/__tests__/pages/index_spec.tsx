@@ -22,6 +22,13 @@ jest.mock('../../../data', () => ({
       }, 0)
     })
   }),
+  updateTodo: jest.fn().mockImplementation((todo) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ ...todo })
+      }, 0)
+    })
+  }),
 }))
 
 describe('Index page', () => {
@@ -61,10 +68,24 @@ describe('Index page', () => {
       expect(tree.queryByText('Loading...')).toBeFalsy()
     })
   })
+
+  it('should mark the first todo as done', async () => {
+    const tree = renderWithChakra(<Home />)
+
+    await waitFor(() => {
+      expect(tree.getAllByText('Done')[0])
+    })
+
+    fireEvent.click(tree.getAllByText('Done')[0])
+
+    await waitFor(() => {
+      expect(tree.getAllByText('Undo')[0]).toBeTruthy()
+    })
+  })
 })
 
 const dataMock = [
-  { _id: '638c2ac852b3b9e763b7f5f6', text: 'Say what', status: 2, priority: 1 },
-  { _id: '638c2b0135fcde43f3a22000', text: 'Looks like it worked', status: 2, priority: 1 },
-  { _id: '638ca7a1e9265c7255f4c063', text: 'Check me out', status: 2, priority: 1 },
+  { _id: '638c2ac852b3b9e763b7f5f6', text: 'Say what', status: 0, priority: 1 },
+  { _id: '638c2b0135fcde43f3a22000', text: 'Looks like it worked', status: 1, priority: 1 },
+  { _id: '638ca7a1e9265c7255f4c063', text: 'Check me out', status: 1, priority: 1 },
 ]

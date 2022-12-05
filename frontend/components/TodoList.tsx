@@ -3,8 +3,8 @@ import { Button, HStack, Text, VStack } from '@chakra-ui/react'
 import { Status, Todo } from '../types'
 
 export type TodoListProps = {
-  onToggle?: (todo: Todo, status: Status) => void
-  onRemove?: (_id: string) => void
+  onToggle?: (todo: Todo, status: Status) => any
+  onRemove?: (_id: string) => any
   data: Todo[]
 }
 
@@ -19,7 +19,7 @@ export default function TodoList(props: TodoListProps) {
               onClick={() =>
                 props.onToggle?.(todo, todo.status === Status.Incomplete ? Status.Complete : Status.Incomplete)
               }>
-              {todo.status === Status.Incomplete ? 'Mark as Done' : 'Mark as Undone'}
+              {todo.status === Status.Incomplete ? 'Done' : 'Undo'}
             </Button>
             <Button colorScheme="red" onClick={() => props.onRemove?.(todo._id)}>
               Remove

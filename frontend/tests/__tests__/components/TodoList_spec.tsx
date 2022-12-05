@@ -17,7 +17,7 @@ describe('TodoList', () => {
 
     const tree = renderWithChakra(<TodoList data={data} onToggle={onDone} />)
 
-    fireEvent.click(tree.getAllByText('Mark as Done')[0])
+    fireEvent.click(tree.getAllByText('Done')[0])
 
     expect(onDone).toHaveBeenCalledWith(data[0], Status.Complete)
   })
@@ -27,7 +27,7 @@ describe('TodoList', () => {
 
     const tree = renderWithChakra(<TodoList data={data} onToggle={onDone} />)
 
-    fireEvent.click(tree.getAllByText('Mark as Undone')[0])
+    fireEvent.click(tree.getAllByText('Undo')[0])
 
     expect(onDone).toHaveBeenCalledWith(data[1], Status.Incomplete)
   })
