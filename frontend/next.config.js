@@ -10,6 +10,14 @@ const nextConfig = {
     }
     return config
   },
+  rewrites: () => {
+    return [
+      {
+        source: '/server/:path*',
+        destination: 'http://todo-server:4000/:path*',
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig
