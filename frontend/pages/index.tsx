@@ -1,11 +1,12 @@
-import { Container, Text } from '@chakra-ui/react'
+import { Container } from '@chakra-ui/react'
 
+import AddTodo from '../components/AddTodo'
 import TodoList from '../components/TodoList'
 
 export default function Home() {
   return (
     <Container>
-      <Text>Chakra UI</Text>
+      <AddTodo />
       <TodoList
         data={[
           {
