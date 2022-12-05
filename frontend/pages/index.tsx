@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { Container, Text } from '@chakra-ui/react'
 
-import AddTodo from '../components/AddTodo'
+import AddTodo, { NewTodo } from '../components/AddTodo'
 import TodoList from '../components/TodoList'
-import { fetchTodos } from '../data'
+import { fetchTodos, createTodo } from '../data'
 import { Todo } from '../types'
 
 export default function Home() {
@@ -18,13 +18,22 @@ export default function Home() {
     setIsLoading(false)
   }, [])
 
+  const handleAddTodo = async (todo: NewTodo) => {
+    setIsLoading(true)
+    try {
+      const newTodo = await createTodo(todo)
+      setTodos((todos) => [newTodo, ...todos])
+    } catch {}
+    setIsLoading(false)
+  }
+
   useEffect(() => {
     fetchData()
   }, [])
 
   return (
     <Container>
-      <AddTodo />
+      <AddTodo onAdd={handleAddTodo} />
       <TodoList data={todos} />
       {isLoading && <Text>Loading...</Text>}
     </Container>

@@ -4,8 +4,10 @@ import { Button, HStack, Input, Select } from '@chakra-ui/react'
 
 import { Priority, Status, Todo } from '../types'
 
+export type NewTodo = Omit<Todo, '_id'>
+
 export type AddTodoProps = {
-  onAdd?: (todo: Omit<Todo, '_id'>) => any
+  onAdd?: (todo: NewTodo) => any
 }
 
 export default function AddTodo(props: AddTodoProps) {

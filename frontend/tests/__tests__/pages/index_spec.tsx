@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import fetchMock from 'jest-fetch-mock'
 
 import Home from '../../../pages'
@@ -12,6 +12,13 @@ jest.mock('../../../data', () => ({
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve(dataMock)
+      }, 0)
+    })
+  }),
+  createTodo: jest.fn().mockImplementation((todo) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ ...todo, _id: (Math.random() + 1).toString(36).substring(7) })
       }, 0)
     })
   }),
@@ -34,6 +41,23 @@ describe('Index page', () => {
       expect(tree.getByText(dataMock[0].text)).toBeTruthy()
       expect(tree.getByText(dataMock[1].text)).toBeTruthy()
       expect(tree.getByText(dataMock[2].text)).toBeTruthy()
+      expect(tree.queryByText('Loading...')).toBeFalsy()
+    })
+  })
+
+  it('should add new todo', async () => {
+    const tree = renderWithChakra(<Home />)
+
+    fireEvent.change(tree.getByPlaceholderText('Todo text'), { target: { value: 'New todo' } })
+
+    fireEvent.click(tree.getByText('Create'))
+
+    await waitFor(() => {
+      expect(tree.getByText('Loading...')).toBeTruthy()
+    })
+
+    await waitFor(() => {
+      expect(tree.getByText('New todo')).toBeTruthy()
       expect(tree.queryByText('Loading...')).toBeFalsy()
     })
   })
